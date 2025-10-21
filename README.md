@@ -151,3 +151,24 @@ Normalizar a 6 decimales agrega un paso de cómputo, pero estandariza todos los 
 El patrón *checks-effects-interactions* incrementa la claridad del código y evita ataques de reentrancia.  
 Se priorizó seguridad sobre micro-optimización de gas.
 
+### 🔸 Tope Global Expresado en USD (USDC)
+
+El **límite global del banco (`i_bankCapUSDC`)** se define en dólares (escala USDC),  
+por lo que todas las operaciones deben convertirse desde ETH o tokens a su valor equivalente en USD utilizando los **oráculos de Chainlink**.  
+Esto introduce ciertos efectos prácticos:
+
+- El usuario **debe conocer el precio actual del activo** (por ejemplo, ETH/USD) para estimar cuánto puede depositar sin superar el límite.  
+- El **tope efectivo en ETH cambia dinámicamente** según la cotización: si el precio sube, el banco acepta menos ETH; si baja, acepta más.  
+- En entornos sin interfaz (como Remix), este comportamiento puede resultar confuso, ya que el usuario no ve el valor convertido automáticamente.
+
+> 💡 Este diseño replica el comportamiento de un sistema bancario real donde los límites operativos se expresan en una moneda estable (USD), priorizando coherencia contable y estabilidad por sobre la simplicidad de uso.
+
+---
+
+### 🔸 Redondeo y Pérdida de Precisión en Depósitos Pequeños
+
+Dado que la contabilidad global (`s_totalUSDC`) se maneja con **enteros normalizados a 6 decimales (escala USDC)**,  
+los depósitos extremadamente pequeños pueden **redondearse hacia cero** al convertirse desde ETH o tokens debido a la división entera en Solidity:
+
+```solidity
+valueUSDC = (_amount * price * 10**USDC_DECIMALS) / (10**(decToken + decFeed));
