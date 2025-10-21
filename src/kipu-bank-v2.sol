@@ -7,7 +7,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 
 
 /*
-    * @title BancoKipuV2
+    * @title KipuBankV2
     * @notice Contrato inteligente que implementa un banco extendido sobre Ethereum,
     *         capaz de administrar múltiples tipos de activos (ETH y tokens ERC-20),
     *         con control de acceso administrativo, conversión de valores a USD mediante
@@ -660,4 +660,5 @@ contract KipuBankV2 is AccessControl {
         return (address(f.feed), f.tokenDecimals);
     }
 }
+
 
