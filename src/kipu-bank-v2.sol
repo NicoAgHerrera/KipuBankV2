@@ -14,7 +14,6 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
     *         oráculos de Chainlink y normalización de decimales al estándar USDC (6).
     *
     * @dev
-    * ─────────────────────────────────────────────────────────────
     * ▪ Esta versión (V2) amplía las funcionalidades del contrato original **BancoKipu**:
     *    - Se incorpora **soporte multi-token**, permitiendo depósitos y retiros tanto de ETH
     *      como de cualquier token ERC-20 aprobado por la administración.
@@ -660,5 +659,6 @@ contract KipuBankV2 is AccessControl {
         return (address(f.feed), f.tokenDecimals);
     }
 }
+
 
 
