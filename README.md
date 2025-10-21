@@ -57,18 +57,97 @@ uso de `immutable` y `constant`, eventos detallados, entre otros).
 
 ---
 
-## ⚙️ 2. Instrucciones de Despliegue
+## ⚙️ 2. Despliegue
 
 ### 🧩 Requisitos Previos
-- Node.js ≥ 18  
-- [Hardhat](https://hardhat.org/) o [Remix IDE](https://remix.ethereum.org/)  
-- Cuenta con fondos de testnet (por ejemplo Sepolia o Goerli)  
-- Acceso a los **Chainlink Price Feeds** de la red elegida  
+- [Remix IDE](https://remix.ethereum.org/) o entorno Hardhat.  
+- MetaMask configurado en **Sepolia** (u otra testnet compatible).  
+- Fondos de testnet ETH (para gas).  
+- Direcciones de oráculos Chainlink disponibles en la red elegida.
 
-### 🧱 Despliegue en Remix
-1. Compilar el contrato con el compilador **Solidity 0.8.20**.
-2. Seleccionar entorno de despliegue (“Injected Provider – MetaMask”).
-3. Introducir los parámetros del constructor:
-   ```text
-   _bankCapUSDC        → Ej: 1_000_000 * 10^6   // 1 millón de USDC equivalentes
-   _withdrawalCapUSDC  → Ej: 5_000 * 10^6       // 5 mil USDC por transacción
+---
+
+### 🧱 Proceso de Despliegue (Remix)
+1. Abrir [Remix](https://remix.ethereum.org/) y crear el archivo `contracts/KipuBankV2.sol`.  
+2. Compilar con **Solidity 0.8.30** (license MIT, optimization **enabled**, 200 runs).  
+3. Conectar MetaMask a **Sepolia**.  
+4. En la pestaña **Deploy & Run**, seleccionar el contrato `KipuBankV2`.  
+5. Ingresar los parámetros del constructor:  
+   - `_bankCapUSDC`: tope global del banco en USD (ej. `1000000 * 10**6`)  
+   - `_withdrawalCapUSDC`: tope máximo por retiro (ej. `10000 * 10**6`)  
+6. Presionar **Deploy** y confirmar la transacción en MetaMask.  
+7. Guardar la dirección del contrato desplegado.
+
+---
+
+### 🔍 Verificación en Etherscan
+1. Copiar la dirección del contrato.  
+2. Ir a [Sepolia Etherscan → Verify & Publish](https://sepolia.etherscan.io/verifyContract).  
+3. Seleccionar:
+   - Compilador: `Solidity 0.8.20+commit.a1b79de6`
+   - Optimization: **Yes/No**
+   - Runs: `200`
+   - License: `MIT`
+   - Contract Name: `KipuBankV2`
+4. Pegar el **flatten completo** del contrato (`KipuBankV2.sol`).  
+5. Confirmar.  
+Una vez verificado, las funciones estarán disponibles desde el explorador.
+
+---
+
+## 🧭 3. Interacción
+
+### 💰 Depósitos
+| Operación | Descripción | Método |
+|------------|--------------|--------|
+| Depositar ETH | Enviar ETH directamente al contrato o usar `depositETH()` | `receive()` o `depositETH()` |
+| Depositar token ERC-20 | Transferir tokens aprobados al banco | `depositToken(address token, uint256 amount)` |
+
+> 🔸 Antes de usar `depositToken`, el usuario debe hacer `approve(contract, amount)` desde el token correspondiente.
+
+---
+
+### 💸 Retiros
+| Operación | Descripción | Método |
+|------------|-------------|--------|
+| Retirar ETH | Extrae fondos en ETH del usuario | `withdrawETH(uint256 amount)` |
+| Retirar token ERC-20 | Extrae tokens específicos de la bóveda | `withdrawToken(address token, uint256 amount)` |
+
+---
+
+### 🔎 Consultas
+| Función | Descripción |
+|----------|-------------|
+| `getVault(address user, address token)` | Devuelve saldo, depósitos y retiros de un usuario para un token. |
+| `getTotalUSDC()` | Retorna el valor total custodiado por el banco en USD equivalentes. |
+| `getFeed(address token)` | Informa el oráculo y decimales asociados al token. |
+
+---
+
+### ⚙️ Funciones Administrativas (solo `ADMIN_ROLE`)
+| Función | Descripción |
+|----------|-------------|
+| `setPriceFeed(address token, address feed, uint8 decimals)` | Registra o actualiza el oráculo de precios de un token. |
+
+---
+
+## 🧩 4. Notas de Diseño y Trade-Offs
+
+### 🔸 Estandarización de Valor
+Se optó por una **contabilidad interna en USD (escala USDC)** para evitar volatilidad y mantener coherencia entre activos de distinto tipo.  
+Esto implica una dependencia de **oráculos Chainlink**, pero garantiza transparencia y consistencia en auditorías.
+
+### 🔸 Seguridad por Roles
+El uso de `AccessControl` introduce complejidad, pero ofrece escalabilidad y control granular sobre permisos administrativos.  
+Permite delegar autoridad sin comprometer la seguridad del sistema.
+
+### 🔸 Manejo de ETH y Tokens Unificado
+Se usa `address(0)` para representar ETH, lo que simplifica la estructura y evita duplicar lógica de depósito/retiro.
+
+### 🔸 Conversión de Decimales
+Normalizar a 6 decimales agrega un paso de cómputo, pero estandariza todos los tokens frente al USD y evita errores de redondeo.
+
+### 🔸 Patrón de Seguridad
+El patrón *checks-effects-interactions* incrementa la claridad del código y evita ataques de reentrancia.  
+Se priorizó seguridad sobre micro-optimización de gas.
+
