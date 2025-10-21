@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
@@ -660,3 +660,4 @@ contract KipuBankV2 is AccessControl {
         return (address(f.feed), f.tokenDecimals);
     }
 }
+
