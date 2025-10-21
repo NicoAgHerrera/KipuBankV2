@@ -598,7 +598,7 @@ contract KipuBankV2 is AccessControl {
         uint8 decToken = info.tokenDecimals;
         uint8 decFeed = info.feed.decimals();
 
-        uint256 usdValue = (_amount * uint256(price)) / (10 ** (decToken + decFeed - USDC_DECIMALS));
+        uint256 usdValue = (_amount * uint256(price) * (10 ** USDC_DECIMALS)) / (10 ** (decToken + decFeed));
         return usdValue;
     }
 
